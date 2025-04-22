@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모던 로그인</title>
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #0a0a0a;
+      --card: #ffffff;
+      --card-foreground: #0a0a0a;
+      --primary: #171717;
+      --primary-foreground: #fafafa;
+      --secondary: #f5f5f5;
+      --secondary-foreground: #171717;
+      --muted: #f5f5f5;
+      --muted-foreground: #737373;
+      --accent: #f5f5f5;
+      --accent-foreground: #171717;
+      --destructive: #ef4444;
+      --destructive-foreground: #fafafa;
+      --border: #e5e5e5;
+      --input: #e5e5e5;
+      --ring: #171717;
+      --radius: 0.5rem;
+    }
+
+    .dark {
+      --background: #0a0a0a;
+      --foreground: #fafafa;
+      --card: #0a0a0a;
+      --card-foreground: #fafafa;
+      --primary: #fafafa;
+      --primary-foreground: #171717;
+      --secondary: #262626;
+      --secondary-foreground: #fafafa;
+      --muted: #262626;
+      --muted-foreground: #a3a3a3;
+      --accent: #262626;
+      --accent-foreground: #fafafa;
+      --destructive: #7f1d1d;
+      --destructive-foreground: #fafafa;
+      --border: #262626;
+      --input: #262626;
+      --ring: #d4d4d4;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--foreground);
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--accent);
+    }
+
+    .sun-icon, .moon-icon {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .sun-icon {
+      opacity: 1;
+      transform: rotate(0) scale(1);
+    }
+
+    .moon-icon {
+      position: absolute;
+      opacity: 0;
+      transform: rotate(90deg) scale(0);
+    }
+
+    .dark .sun-icon {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0);
+    }
+
+    .dark .moon-icon {
+      opacity: 1;
+      transform: rotate(0) scale(1);
+    }
+
+    .card {
+      background-color: var(--card);
+      color: var(--card-foreground);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      width: 100%;
+      max-width: 24rem;
+      overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .card-header {
+      padding: 1.5rem 1.5rem 0;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-description {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+    }
+
+    .card-content {
+      padding: 1.5rem;
+    }
+
+    .card-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .oauth-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      height: 2.5rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--border);
+      color: var(--foreground);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--accent);
+      color: var(--accent-foreground);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 0.5rem;
+    }
+
+    .separator {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1.5rem 0;
+      color: var(--muted-foreground);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .separator::before,
+    .separator::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .separator::before {
+      margin-right: 0.5rem;
+    }
+
+    .separator::after {
+      margin-left: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 2.5rem;
+      padding: 0 0.75rem;
+      background-color: transparent;
+      border: 1px solid var(--input);
+      border-radius: var(--radius);
+      color: var(--foreground);
+      font-size: 0.875rem;
+    }
+
+    .form-input:focus {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .link {
+      color: var(--primary);
+      font-size: 0.875rem;
+      text-decoration: none;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .text-muted {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" aria-label="테마 변경">
+    <svg xmlns="http://www.w3.org/2000/svg" class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </button>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">로그인</h2>
+      <p class="card-description">계정에 로그인하려면 아래 방법 중 하나를 선택하세요</p>
+    </div>
+    <div class="card-content">
+      유니캣 서버에서 인증 가능한 oauth 내려 받아서 동적으로 그려주세요.(서버가 인증 가능한 갯수만)
+      <div class="oauth-buttons">
+        <button class="btn btn-outline">
+          GitHub
+        </button>
+        <button class="btn btn-outline" >
+          Google
+        </button>
+      </div>
+
+      <div class="separator">또는 이메일로 계속하기</div>
+
+      <form>
+        <div class="form-group">
+          <label for="email" class="form-label">이메일</label>
+          <input type="email" id="email" class="form-input" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <div class="form-footer">
+            <label for="password" class="form-label">비밀번호</label>
+          </div>
+          <input type="password" id="password" class="form-input" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">로그인(실제 쿠키가 발급되게 해주세요.)</button>
+      </form>
+    </div>
+    <!-- <div class="card-footer">
+      <span class="text-muted">계정이 없으신가요? <a href="#" class="link">회원가입</a></span>
+    </div> -->
+  </div>
+
+  <script>
+    // 다크 모드 토글 기능
+    const themeToggle = document.querySelector('.theme-toggle');
+    
+    // 로컬 스토리지에서 테마 설정 불러오기
+    const savedTheme = localStorage.getItem('theme');
+    
+    // 시스템 다크 모드 설정 확인
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // 저장된 테마가 있으면 적용, 없으면 시스템 설정 따르기
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.body.classList.add('dark');
+    }
+    
+    // 테마 토글 버튼 클릭 이벤트
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      
+      // 현재 테마 상태 저장
+      if (document.body.classList.contains('dark')) {
+        localStorage.setItem('theme', 'dark');
+      } else {
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  </script>
+</body>
+</html>
